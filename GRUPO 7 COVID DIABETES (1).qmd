@@ -1,0 +1,212 @@
+
+---
+title: "Importación y Limpieza de Datos para el Dataset de COVID-19 y Diabetes"
+author: Mayra Jeanette Rodríguez Berrocal
+output: html_document
+---
+
+## Introducción
+
+Este documento presenta el proceso de importación, limpieza y transformación de un conjunto de datos relacionado con COVID-19 y diabetes. A través de una serie de pasos, se utilizaron herramientas en R para estructurar y preparar los datos para análisis futuros. A continuación, se describen los pasos seguidos y los paquetes utilizados para lograr una gestión eficiente de los datos.
+
+## Paso 1: Instalación de Paquetes
+
+Primero, aseguramos que los paquetes necesarios estén instalados. Algunos paquetes como `tidyverse`, `rio`, `janitor`, `skimr` y `visdat` son esenciales para procesar y limpiar el dataset.
+
+```{r}
+# Instalar los paquetes necesarios
+install.packages("tidyverse")
+install.packages("rio")
+install.packages("here")
+install.packages("janitor")
+install.packages("skimr")
+install.packages("visdat")
+```
+
+## Paso 2: Cargar las Bibliotecas Necesarias
+
+Una vez que los paquetes están instalados, los cargamos en R para poder utilizarlos.
+
+```{r}
+# Cargar las bibliotecas necesarias
+library(tidyverse)
+library(rio)
+library(here)
+library(janitor)
+library(skimr)
+library(visdat)
+```
+
+## Paso 3: Importar el Dataset
+
+En este paso, importamos el dataset desde el archivo `.csv` proporcionado y lo cargamos correctamente en R. Debemos de colocar nuestro nombre de usuario de nuestro computador, la ruta se dirige al escritorio por lo tanto colocamos nuestro archivo .csv allí.
+
+```{r}
+# Importar el dataset desde la carpeta DATA en el escritorio (Windows)
+
+data <- read.csv("C:/Users/Franco Rodrigo/Desktop/DATA/covid_19_diabetes.csv", stringsAsFactors = FALSE)
+
+# Verificar las primeras filas del dataset
+head(covid_data)
+```
+
+## Paso 4: Inspección Inicial de los Datos
+
+Realizamos una inspección inicial para conocer la estructura del dataset y verificar la calidad de los datos.
+
+```{r}
+# Inspeccionar la estructura del dataset
+str(covid_data)
+
+# Verificar los nombres de las columnas
+colnames(covid_data)
+
+# Obtener un resumen estadístico de los datos
+summary(covid_data)
+```
+
+## Paso 5: Limpieza de Nombres de las Columnas
+
+En esta sección, realizaremos la limpieza y procesamiento de los datos del dataset covid_19_diabetes.csv. El objetivo es preparar los datos para el análisis exploratorio, asegurándonos de que estén en un formato adecuado y libre de errores. Utilizaremos los paquetes readr para leer el archivo CSV, janitor para limpiar los nombres de las columnas, y dplyr para manipular y transformar los datos.
+
+Las tareas principales incluyen:
+
+
+1. Leer el archivo CSV.
+
+
+2. Limpiar los nombres de las columnas para que sean consistentes.
+
+
+3. Convertir las variables categóricas a factores.
+
+
+4. Manejar valores faltantes o incorrectos.
+
+
+5. Crear nuevas variables si es necesario.
+
+```{r}
+library(janitor)
+library(dplyr)
+
+# Limpiar nombres de columnas
+data <- clean_names(data)
+
+# Convertir automáticamente variables categóricas a factores
+data <- data %>%
+  mutate(across(where(is.character), as.factor)) %>%
+  mutate(across(where(~ is.numeric(.) && n_distinct(.) <= 5), as.factor))
+
+# Eliminar filas con datos faltantes
+data <- na.omit(data)
+
+# Verifica si existe la columna 'edad'
+if ("edad" %in% colnames(data)) {
+  data <- data %>%
+    mutate(edad_cat = case_when(
+      edad <= 60 ~ "0-60",
+      edad > 60 & edad <= 70 ~ "61-70",
+      edad > 70 & edad <= 80 ~ "71-80",
+      edad > 80 ~ ">80",
+      TRUE ~ "Desconocido"
+    ))
+}
+
+# Verificar los primeros registros
+head(data)
+
+```
+
+## Paso 6: Manejo de Valores Faltantes
+
+Verificamos los valores faltantes en el dataset y tomamos decisiones sobre cómo manejarlos.
+
+```{r}
+# Comprobar la cantidad de valores faltantes en el dataset
+sum(is.na(covid_data))
+
+# Eliminar filas con valores faltantes
+data_cleaned <- covid_data %>%
+  drop_na()
+
+# Verificar los datos limpios
+summary(data_cleaned)
+```
+
+## Paso 7: Transformación de los Datos
+
+Transformamos algunas variables, por ejemplo, convirtiendo las variables binarias (Sí/No) a factores.
+
+```{r}
+# Convertir las variables binarias a factores
+data_cleaned$pac_fue_hospital <- factor(data_cleaned$pac_fue_hospital, levels = c("Sí", "No"))
+data_cleaned$desenla_fallecido <- factor(data_cleaned$desenla_fallecido, levels = c("Sí", "No"))
+
+# Verificar los datos transformados
+summary(data_cleaned)
+```
+# Analisis exploratorio de datos (EDA)
+
+En esta sección, realizaremos un análisis exploratorio de datos (EDA) para comprender mejor las características y relaciones dentro del dataset. Utilizaremos los paquetes skimr para un resumen rápido de los datos y ggplot2 para la visualización de datos.
+
+
+```{r}
+# Instalar y cargar paquetes si es necesario
+if (!require(skimr)) install.packages("skimr")
+if (!require(ggplot2)) install.packages("ggplot2")
+if (!require(corrplot)) install.packages("corrplot")
+
+library(skimr)
+library(ggplot2)
+library(corrplot)
+library(dplyr)
+
+# Resumen estadístico del dataset
+skim(data)
+
+# Visualización de la distribución de la edad
+ggplot(data, aes(x = edad_cat)) +
+  geom_bar(fill = "#69b3a2") +
+  labs(title = "Distribución de la Edad", x = "Categoría de Edad", y = "Frecuencia")
+
+# Visualización de la relación entre edad y desenlace (fallecido o no)
+if ("desenla_fallecido" %in% colnames(data)) {
+  ggplot(data, aes(x = edad_cat, fill = desenla_fallecido)) +
+    geom_bar(position = "dodge") +
+    labs(title = "Edad vs Desenlace",
+         x = "Categoría de Edad",
+         y = "Frecuencia",
+         fill = "Fallecido")
+}
+
+# Visualización de la relación entre severidad y desenlace (si ambas existen)
+if (all(c("severidad", "desenla_fallecido") %in% colnames(data))) {
+  ggplot(data, aes(x = severidad, fill = desenla_fallecido)) +
+    geom_bar(position = "dodge") +
+    labs(title = "Severidad vs Desenlace",
+         x = "Severidad",
+         y = "Frecuencia",
+         fill = "Fallecido")
+}
+
+# Análisis de correlación entre variables numéricas
+cor_data <- data %>%
+  select(where(is.numeric)) %>%
+  cor(use = "complete.obs")
+
+# Visualización de la matriz de correlación
+corrplot(cor_data, method = "circle", type = "upper", tl.cex = 0.8, number.cex = 0.7)
+
+```
+
+
+## Paso 8: Exportación de los Datos Limpiados
+
+Finalmente, exportamos el dataset limpio y transformado a un nuevo archivo `.csv`.
+
+```{r}
+# Exportar los datos limpios a un nuevo archivo .csv
+export(data_cleaned, 'data/cleaned_covid_19_diabetes.csv')
+```
+

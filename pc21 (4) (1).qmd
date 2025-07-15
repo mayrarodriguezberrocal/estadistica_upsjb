@@ -1,0 +1,174 @@
+---
+title: "PC2_1"
+format: html
+editor: visual
+---
+
+## Paquetes para visualizar datos
+
+```{r}
+install.packages("gridExtra")
+install.packages("GGally")
+install.packages("forcats")
+```
+
+```{r}
+library(tidyverse)
+library(rio)
+library(here)
+library(gridExtra)
+library(GGally)
+library(forcats)
+```
+
+## **Cargando datos**
+
+```{r}
+data_mama_0 <-import(here("data","covid_19_diabetes.csv"))
+```
+
+## Examinamos datos
+
+```{r}
+str(data_mama_0)
+```
+
+## Conversión de caracteres a factor
+
+```{r}
+data_mama <- data_mama_0 |> 
+  mutate_if(is.character, as.factor)
+str(data_mama)
+```
+
+## Visualizando distribución de datos
+
+## 1. Visualizando datos categóricos
+
+```{r}
+data_mama |>  
+  ggplot(aes(x = pac_fue_hospital)) +
+  geom_bar()
+```
+
+```{r}
+data_mama |>  
+  ggplot(aes(x = fct_infreq(pac_fue_hospital))) +
+  geom_bar()
+```
+
+```{r}
+data_mama |>  
+  ggplot(aes(x = fct_infreq(pac_fue_hospital))) +
+  geom_bar() +
+  labs(y = "Frecuencia", x = "Pacientes que fueron al hospital")
+```
+
+```{r}
+data_mama |>  
+  ggplot(aes(x = pac_fue_hospital, y = ..count../sum(after_stat(count)))) +
+  geom_bar() +
+  labs(y = "Porcentaje", x = "Pacientes que fueron al hospital")
+```
+
+## 2. Visualizando Datos Numéricos
+
+## 2.1. Con histogramas
+
+```{r}
+data_mama |>  
+  ggplot(aes(x = Presión_arterial_media)) +
+  geom_histogram() +
+  labs(y = "Frecuencia", x = "Presión arterial media (mmHg)")
+```
+
+```{r}
+data_mama  |>  
+  ggplot(aes(x = Presión_arterial_media)) +
+  geom_histogram(aes(y = ..density..)) +
+  labs(y = "Density", x = "Presión arterial media (mmHg)")
+```
+
+```{r}
+hist_1 = data_mama |> ggplot(aes(x = Presión_arterial_media)) +
+  geom_histogram() +
+  labs(y = "Frecuencia", x = "Presión arterial media (mmHg)")
+
+hist_2 = data_mama  |>  
+  ggplot(aes(x = Presión_arterial_media)) +
+  geom_histogram(aes(y = ..density..)) +
+  labs(y = "Density", x = "Presión arterial media (mmHg)")
+```
+
+```{r}
+grid.arrange(hist_1, hist_2, ncol = 2)
+```
+
+```{r}
+data_mama |>  
+  ggplot(aes(x = Presión_arterial_media)) +
+  geom_histogram(bins = 10) +
+  labs(y = "Frecuencia", x = "Presión arterial media (mmHg)")
+```
+
+```{r}
+data_mama |>  
+  ggplot(aes(x = Presión_arterial_media)) +
+  geom_histogram(
+    color = "white", 
+    fill = "cornflowerblue" 
+    ) + 
+  labs(y = "Frecuencia", 
+       x = "Presión arterial media (mmHg)")
+```
+
+```{r}
+data_mama |>  
+  ggplot(aes(x = fct_infreq(edad), fill = edad)) +
+  geom_bar() +
+  labs(y = "Frecuencia", x = "Edad de pacientes")
+```
+
+## 2.2. Con Boxplots
+
+```{r}
+data_mama |> 
+  ggplot(aes(y = Presión_arterial_media)) + 
+  geom_boxplot() +
+  theme(axis.text.x  = element_blank(),
+        axis.ticks.x = element_blank()) +
+  labs(y = "Presión arterial media (mmHg)")
+```
+
+```{r}
+box_album_base = boxplot(data_mama$Presión_arterial_media,
+                         ylab = "Presión arterial media (mmHg)",
+                         horizontal = TRUE, 
+                         col = "salmon") 
+```
+
+# 3. Visualizando variables categóricas *versus* categóricas
+
+```{r}
+data_mama |> 
+  ggplot(aes(x = Dímero_D_medido, fill = Plaquetas_medidas)) +
+  geom_bar(position = "dodge") + 
+  labs(y = "Frecuencia",  
+       x = "Dímero D",
+       fill = "Plaquetas")
+```
+
+```{r}
+data_mama |>   
+  group_by(raza_negra, desenla_fallecido)  |>  
+  count() |>   
+  # Compute proportions within grade
+  # n is the default variable created by count()
+  group_by(raza_negra) |>   
+  mutate(Proportion = n/sum(n))  |> 
+  ggplot(aes(x = raza_negra, y = Proportion, fill = desenla_fallecido)) +
+  geom_bar(position = 'dodge', stat = 'identity') +
+  labs(y = "Proportion",
+       x = "Raza negra",
+       fill = "Fallecido")
+```

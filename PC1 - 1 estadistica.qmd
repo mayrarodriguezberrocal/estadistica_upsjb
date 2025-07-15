@@ -1,0 +1,83 @@
+---
+title: "Semana-1"
+author: "Lucho"
+format: html
+editor: visual
+---
+
+```{r}
+
+```
+
+**EJECUTANDO CODIGOS EN R**
+
+```{r}
+#| label: EJECUTANDO CODIGOS EN R
+1 + 1
+```
+
+Un valor a un objeto nombrado "X"
+
+```{r}
+x <- 5
+x = 5
+```
+
+Qué hay en el objeto "x"?
+
+```{r}
+x
+```
+
+```{r}
+y = 5
+
+x + y
+```
+
+Tres calores a un objeto llamado "z"
+
+```{r}
+z <- c(3, 7, 2)
+z = c(3, 7, 2)
+
+```
+
+Los objetos en R pueden ser visualizados, referenciados y manipulados
+
+```{r}
+x = 5
+y = 5
+x + y
+
+```
+
+```{r}
+#un valor a un objeto nombrado "x"
+x <-5
+# Que hay en el objeto x?
+x
+# Tres valores en un objeto
+#z <- c(3,7,2)
+```
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
